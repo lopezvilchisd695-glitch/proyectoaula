@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sistema Solar de Carga — Prototipo</title>
+  <style>
+    :root{
+      --blue:#0f4c81;
+      --light-blue:#2b6ba6;
+      --green:#2a9d8f;
+      --gray:#f2f4f6;
+      --muted:#6b7280;
+      --card:#ffffff;
+      --glass: rgba(255,255,255,0.6);
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin:0; background:linear-gradient(180deg,var(--gray),#e9eef3); color:#0b1220}
+    header{background:linear-gradient(90deg,var(--blue),var(--light-blue)); color:white; padding:28px 20px}
+    .container{max-width:1100px;margin:20px auto;padding:0 16px}
+    .hero{display:flex;gap:20px;align-items:center}
+    .hero .left{flex:1}
+    .hero h1{font-size:28px;margin:0 0 8px}
+    .hero p{margin:0;color:rgba(255,255,255,0.95)}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 18px rgba(12,24,40,0.08);padding:18px}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+    .palette{display:flex;gap:8px;margin-top:12px}
+    .swatch{width:36px;height:36px;border-radius:8px}
+    .section{margin:18px 0}
+    h2{color:var(--blue);margin:0 0 10px}
+    ul{margin:8px 0 8px 20px}
+    .accordion{border-radius:8px;overflow:hidden}
+    .acc-item{border-bottom:1px solid #e6e9ee}
+    .acc-item button{width:100%;text-align:left;padding:12px;background:none;border:0;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+    .acc-body{padding:12px 16px;background:#fff}
+    .muted{color:var(--muted)}
+    .cta{display:inline-block;padding:10px 14px;border-radius:10px;background:var(--green);color:white;text-decoration:none;font-weight:700}
+    /* calculator */
+    .calc input, .calc select{width:100%;padding:8px;border-radius:8px;border:1px solid #d8dbe1}
+    .row{display:flex;gap:10px}
+    .row .col{flex:1}
+    footer{padding:20px;text-align:center;color:var(--muted)}
+    /* small interactions */
+    .kpi{display:flex;gap:12px;align-items:center}
+    .chip{background:var(--glass);padding:8px 10px;border-radius:999px;color:var(--muted);font-weight:700}
+    pre{white-space:pre-wrap;background:#0b1220;color:#dbeafe;padding:12px;border-radius:8px}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}
+      .hero{flex-direction:column;align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container hero">
+      <div class="left">
+        <h1>Sistema Solar de Carga para Dispositivos Móviles</h1>
+        <p>Portátil y educativo — diseño con MPPT, LiFePO4 y salida USB/USB-C PD. Página interactiva con cálculo de dimensionamiento.</p>
+        <div class="palette">
+          <div class="swatch" style="background:var(--blue)"></div>
+          <div class="swatch" style="background:var(--green)"></div>
+          <div class="swatch" style="background:#98a2b3"></div>
+        </div>
+      </div>
+      <div class="right card" style="width:340px">
+        <strong>Resumen rápido</strong>
+        <p class="muted">Panel recomendado: <span id="rec-panel">10 W</span> · Batería recomendada: <span id="rec-batt">10 Ah (LiFePO4)</span></p>
+        <div style="margin-top:10px" class="kpi">
+          <div class="chip">Eficiencia objetivo: 80%</div>
+          <div class="chip">Ciclos > 1000</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      <div>
+        <section class="card section">
+          <h2>Justificación</h2>
+          <p><strong>Personal:</strong> Proporciona autonomía frente a cortes y en actividades al aire libre; fomenta energía limpia.</p>
+          <p><strong>Grupo:</strong> Proyecto interdisciplinario que combina cálculo, montaje y pruebas.</p>
+          <p><strong>Nivel educativo:</strong> Técnico medio superior / bachillerato orientado a electromecánica/telecomunicaciones.</p>
+        </section>
+
+        <section class="card section">
+          <h2>Objetivos</h2>
+          <ul>
+            <li>Diseñar y validar un prototipo que entregue al menos una carga diaria a un smartphone.</li>
+            <li>Calcular demanda y dimensionar panel y batería.</li>
+            <li>Seleccionar electrónica de control y probar el prototipo.</li>
+            <li>Evaluar costo, seguridad y escalabilidad.</li>
+          </ul>
+        </section>
+
+        <section class="card section">
+          <h2>Hipótesis</h2>
+          <p class="muted">Si se usa MPPT y LiFePO4 correctamente dimensionados, el sistema entregará una carga completa diaria con &gt;80% de eficiencia y ciclos &gt;1000.</p>
+        </section>
+
+        <section class="card section">
+          <h2>Marco teórico (resumen)</h2>
+          <div class="accordion">
+            <div class="acc-item">
+              <button onclick="toggleAcc(this)">Fotovoltaica básica <span>▾</span></button>
+              <div class="acc-body" style="display:none">Un panel convierte radiación en corriente; la potencia depende de área, tecnología y orientación.</div>
+            </div>
+            <div class="acc-item">
+              <button onclick="toggleAcc(this)">MPPT vs PWM <span>▾</span></button>
+              <div class="acc-body" style="display:none">MPPT ajusta tensión/corriente para maximizar potencia; mejor rendimiento bajo condiciones variables.</div>
+            </div>
+            <div class="acc-item">
+              <button onclick="toggleAcc(this)">Baterías <span>▾</span></button>
+              <div class="acc-body" style="display:none">LiFePO4 ofrece mayor vida útil vs plomo-ácido; mejor costo por ciclo para portátiles.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card section">
+          <h2>Componentes propuestos</h2>
+          <ol>
+            <li>Panel solar: 6–20 W (monocristalino compacto).</li>
+            <li>Controlador MPPT para 5–30 W.</li>
+            <li>Batería LiFePO4 10 Ah (≈32–37 Wh) con BMS.</li>
+            <li>DC-DC boost/step-down para 5V USB y USB-C PD.</li>
+            <li>Caja IP, fusibles, conectores.</li>
+            <li>Instrumentación: voltímetro/amperímetro/logging (opcional).</li>
+          </ol>
+        </section>
+
+        <section class="card section">
+          <h2>Dimensionamiento — Calculadora interactiva</h2>
+          <p class="muted">Introduce los valores para calcular energía requerida, panel y batería recomendada.</p>
+          <div class="calc">
+            <div class="row">
+              <div class="col">
+                <label>Capacidad smartphone (mAh)</label>
+                <input id="mAh" type="number" value="4000" />
+              </div>
+              <div class="col">
+                <label>Tensión celular nominal (V)</label>
+                <input id="vcell" type="number" value="3.7" step="0.1" />
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:10px">
+              <div class="col">
+                <label>Eficiencia total del sistema (%)</label>
+                <input id="eff" type="number" value="70" />
+              </div>
+              <div class="col">
+                <label>Horas pico de sol</label>
+                <input id="sun" type="number" value="5" />
+              </div>
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+              <button class="cta" onclick="runCalc()">Calcular</button>
+              <button onclick="resetCalc()" style="background:#eef3ff;border:0;padding:10px 12px;border-radius:8px">Reset</button>
+            </div>
+
+            <div id="results" style="margin-top:14px"></div>
+          </div>
+        </section>
+
+        <section class="card section">
+          <h2>Metodología y Cronograma</h2>
+          <ul>
+            <li>Investigación y selección (1–2 sem).</li>
+            <li>Dimensionamiento y simulación (1 sem).</li>
+            <li>Compra y montaje (1–2 sem).</li>
+            <li>Pruebas y documentación (4–6 sem).</li>
+          </ul>
+        </section>
+
+      </div>
+
+      <aside>
+        <div class="card section">
+          <h2>Bloque eléctrico (diagrama)</h2>
+          <div style="text-align:center;margin-top:8px">
+            <svg width="300" height="180" viewBox="0 0 600 360" xmlns="http://www.w3.org/2000/svg">
+              <rect x="30" y="30" width="120" height="60" rx="8" fill="#e6f7f3" stroke="#1b6f5b" />
+              <text x="90" y="65" text-anchor="middle" fill="#0b1220" font-weight="700">Panel</text>
+              <rect x="210" y="30" width="160" height="60" rx="8" fill="#eef6ff" stroke="#1b4f8a" />
+              <text x="290" y="65" text-anchor="middle" fill="#0b1220" font-weight="700">MPPT</text>
+              <rect x="400" y="30" width="140" height="60" rx="8" fill="#fff6ea" stroke="#b07a2b" />
+              <text x="470" y="65" text-anchor="middle" fill="#0b1220" font-weight="700">Batería</text>
+
+              <line x1="150" y1="60" x2="210" y2="60" stroke="#0b1220" stroke-width="3" stroke-linecap="round" />
+              <line x1="370" y1="60" x2="400" y2="60" stroke="#0b1220" stroke-width="3" stroke-linecap="round" />
+
+              <rect x="210" y="120" width="220" height="60" rx="8" fill="#f3f8ff" stroke="#2b6ba6" />
+              <text x="320" y="155" text-anchor="middle" fill="#0b1220" font-weight="700">DC-DC / USB-PD</text>
+              <line x1="470" y1="90" x2="470" y2="120" stroke="#0b1220" stroke-width="3" stroke-linecap="round" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="card section">
+          <h2>Presupuesto orientativo</h2>
+          <ul>
+            <li>Panel 10 W: 15–40 USD</li>
+            <li>MPPT (5–30 W): 20–60 USD</li>
+            <li>Batería LiFePO4 10 Ah: 30–120 USD</li>
+          </ul>
+        </div>
+
+        <div class="card section">
+          <h2></h2>
+          <p class="muted"></a>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="section" style="text-align:center">
+      <small class="muted">Referencias: TI (USB-PD), Microchip (MPPT), guías de dimensionamiento fotovoltaico.</small>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">Made with ♻️ • Sistema Solar de Carga — plantilla interactiva</div>
+  </footer>
+
+  <script>
+    function toggleAcc(btn){
+      const body = btn.nextElementSibling;
+      const open = body.style.display === 'block';
+      document.querySelectorAll('.acc-body').forEach(b=>b.style.display='none');
+      if(!open) body.style.display='block';
+    }
+
+    function runCalc(){
+      const mAh = Number(document.getElementById('mAh').value) || 0;
+      const vcell = Number(document.getElementById('vcell').value) || 3.7;
+      const effPercent = Number(document.getElementById('eff').value) || 70;
+      const sun = Number(document.getElementById('sun').value) || 5;
+
+      // step-by-step calculations (digit by digit style)
+      const ah = mAh/1000;
+      const energyWh = Number((ah * vcell).toFixed(3));
+      const factor = 1 + (100 - effPercent)/100; // e.g. eff 70 -> factor 1.3
+      const requiredWh = Number((energyWh * factor).toFixed(3));
+      const panelW = Number((requiredWh / sun).toFixed(3));
+      const battAh = Number((requiredWh / vcell).toFixed(3));
+
+      // suggested commercial sizes
+      const suggestedPanel = panelW <=6 ? '6–10 W' : panelW <=20 ? '10–20 W' : Math.ceil(panelW/10)*10 + ' W';
+      const suggestedBatt = battAh <=5 ? '10 Ah (LiFePO4)' : Math.ceil(battAh*2) + ' Ah (LiFePO4)';
+
+      document.getElementById('rec-panel').textContent = suggestedPanel;
+      document.getElementById('rec-batt').textContent = suggestedBatt;
+
+      const results = `
+        <strong>Resultados</strong>
+        <div style="margin-top:8px">
+          <div class="muted">Energía smartphone: </div><div><strong>${energyWh} Wh</strong></div>
+          <div class="muted" style="margin-top:6px">Energía requerida (considerando pérdidas): </div><div><strong>${requiredWh} Wh</strong></div>
+          <div class="muted" style="margin-top:6px">Panel mínimo (W) = Energía requerida ÷ horas pico de sol:</div>
+          <div><strong>${panelW} W</strong></div>
+          <div class="muted" style="margin-top:6px">Capacidad mínima de batería ≈ ${battAh} Ah (a ${vcell} V)</div>
+          <div style="margin-top:8px"><em>Sugerencia comercial:</em> Panel ${suggestedPanel} · Batería ${suggestedBatt}</div>
+        </div>
+      `;
+
+      document.getElementById('results').innerHTML = results;
+
+      // update download blob so the user can save current inputs
+      updateDownload();
+    }
+
+    function resetCalc(){
+      document.getElementById('mAh').value = 4000;
+      document.getElementById('vcell').value = 3.7;
+      document.getElementById('eff').value = 70;
+      document.getElementById('sun').value = 5;
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('rec-panel').textContent = '10 W';
+      document.getElementById('rec-batt').textContent = '10 Ah (LiFePO4)';
+      updateDownload();
+    }
+
+    function printPage(){ window.print(); }
+
+    function updateDownload(){
+      // Create a downloadable snapshot of the page (simple approach: current outerHTML)
+      const html = '<!doctype html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([html], {type:'text/html'});
+      const url = URL.createObjectURL(blob);
+      const a = document.getElementById('download-link');
+      a.href = url;
+    }
+
+    // init
+    updateDownload();
+  </script>
+</body>
+</html>
